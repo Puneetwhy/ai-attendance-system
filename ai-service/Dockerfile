@@ -6,7 +6,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     build-essential cmake git \
     libglib2.0-0 libsm6 libxext6 libxrender-dev \
-    libgl1-mesa-glx libgtk2.0-dev \
+    libgl1 libgtk2.0-dev \
     libboost-all-dev \
     wget curl \
     && rm -rf /var/lib/apt/lists/*
