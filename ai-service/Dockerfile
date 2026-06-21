@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
 
 # Python deps
 COPY requirements.txt .
+ENV CMAKE_POLICY_VERSION_MINIMUM=3.5
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
