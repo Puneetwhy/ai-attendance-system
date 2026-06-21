@@ -1,0 +1,42 @@
+# Environment files - NEVER commit these
+.env
+.env.local
+.env.production
+**/.env
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+**/venv/
+**/__pycache__/
+
+# Build outputs
+dist/
+build/
+**/dist/
+**/build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Uploads (local dev only)
+backend/uploads/
+
+# AI service face data cache
+ai-service/face_data/
+ai-service/models/*.model

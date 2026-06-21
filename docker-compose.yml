@@ -1,0 +1,77 @@
+version: '3.9'
+
+services:
+  # MongoDB
+  mongo:
+    image: mongo:7
+    container_name: attendance_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: attendance_db
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - attendance_network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: attendance_backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - mongo
+    networks:
+      - attendance_network
+    volumes:
+      - ./backend/uploads:/app/uploads
+
+  # AI Microservice
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: attendance_ai
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./ai-service/.env
+    networks:
+      - attendance_network
+    volumes:
+      - face_data:/app/face_data
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:5000/api}
+        VITE_AI_URL: ${VITE_AI_URL:-http://localhost:8000}
+    container_name: attendance_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - attendance_network
+
+volumes:
+  mongo_data:
+  face_data:
+
+networks:
+  attendance_network:
+    driver: bridge

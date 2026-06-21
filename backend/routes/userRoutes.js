@@ -1,0 +1,11 @@
+const express = require('express');
+const router = express.Router();
+const { protect, authorize } = require('../middleware/auth');
+const User = require('../models/User');
+const { uploadProfileImage } = require('../config/cloudinary');
+router.use(protect);
+router.get('/profile', async (req, res) => { const user = await User.findById(req.user.id); res.json({ success: true, user: user?.toSafeObject() }); });
+router.put('/profile', uploadProfileImage.single('profileImage'), async (req, res) => { const { name, phone, notificationPreferences, whatsappNumber } = req.body; const updates = { name, phone, notificationPreferences, whatsappNumber }; if (req.file) updates.profileImage = req.file.path; const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true }); res.json({ success: true, user: user?.toSafeObject() }); });
+router.get('/', authorize('admin'), async (req, res) => { const { role, page = 1, limit = 20 } = req.query; const filter = {}; if (role) filter.role = role; const users = await User.find(filter).select('-password -refreshTokens').skip((parseInt(page)-1)*parseInt(limit)).limit(parseInt(limit)); const total = await User.countDocuments(filter); res.json({ success: true, data: users, total }); });
+router.put('/:id/toggle-status', authorize('admin'), async (req, res) => { const user = await User.findById(req.params.id); if (!user) return res.status(404).json({ success: false, message: 'User not found' }); user.isActive = !user.isActive; await user.save({ validateBeforeSave: false }); res.json({ success: true, isActive: user.isActive }); });
+module.exports = router;

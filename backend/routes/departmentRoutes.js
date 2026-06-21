@@ -1,0 +1,10 @@
+const express = require('express');
+const router = express.Router();
+const { protect, authorize } = require('../middleware/auth');
+const { Department } = require('../models/index');
+router.use(protect);
+router.get('/', async (req, res) => { const depts = await Department.find({ isActive: true }).populate('head', 'name email'); res.json({ success: true, data: depts }); });
+router.post('/', authorize('admin'), async (req, res) => { const dept = await Department.create(req.body); res.status(201).json({ success: true, data: dept }); });
+router.put('/:id', authorize('admin'), async (req, res) => { const dept = await Department.findByIdAndUpdate(req.params.id, req.body, { new: true }); res.json({ success: true, data: dept }); });
+router.delete('/:id', authorize('admin'), async (req, res) => { await Department.findByIdAndUpdate(req.params.id, { isActive: false }); res.json({ success: true, message: 'Department deactivated' }); });
+module.exports = router;

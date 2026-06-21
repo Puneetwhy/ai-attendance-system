@@ -1,0 +1,11 @@
+const express = require('express');
+const router = express.Router();
+const { protect, authorize } = require('../middleware/auth');
+const User = require('../models/User');
+const { Teacher, Department } = require('../models/index');
+router.use(protect);
+router.get('/', authorize('admin'), async (req, res) => { const teachers = await Teacher.find().populate('user', 'name email phone profileImage').populate('department', 'name code').sort({ createdAt: -1 }); res.json({ success: true, data: teachers }); });
+router.post('/', authorize('admin'), async (req, res) => { const { name, email, password, phone, employeeId, departmentId, designation } = req.body; const user = await User.create({ name, email, password: password || 'Teacher@123', role: 'teacher', phone }); const teacher = await Teacher.create({ user: user._id, employeeId, department: departmentId, designation }); res.status(201).json({ success: true, data: teacher }); });
+router.get('/:id', async (req, res) => { const teacher = await Teacher.findById(req.params.id).populate('user', '-password -refreshTokens').populate('department'); if (!teacher) return res.status(404).json({ success: false, message: 'Teacher not found' }); res.json({ success: true, data: teacher }); });
+router.put('/:id', authorize('admin'), async (req, res) => { const teacher = await Teacher.findByIdAndUpdate(req.params.id, req.body, { new: true }); res.json({ success: true, data: teacher }); });
+module.exports = router;
